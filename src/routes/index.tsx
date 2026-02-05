@@ -1,12 +1,14 @@
-import { createFileRoute, Router, useRouter } from '@tanstack/react-router'
+import { createFileRoute} from '@tanstack/react-router'
 import { useState, useCallback, useEffect } from 'react';
-import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, NodeChange, OnNodesChange, OnEdgesChange, OnConnect, Controls, Background, Handle, Position, ConnectionMode, useReactFlow} from '@xyflow/react'
+import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, NodeChange, OnNodesChange, OnEdgesChange, OnConnect, Controls, Background, Handle, Position, ConnectionMode, useReactFlow, NodeResizer} from '@xyflow/react'
 import {Node,Edge} from '@xyflow/react'
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Editor } from '@monaco-editor/react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { ReactFlowInstance } from '@xyflow/react';
 import { Panel } from '@xyflow/react';
+import { NodeResizeControl } from '@xyflow/react';
+import { ResizeIcon } from '@/components/ui/ResizeIcon';
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -17,8 +19,9 @@ const initialNodes: Node[] = [
   { 
     id: '1', 
     position: { x: 0, y: 0 }, 
-    data: { label: 'Node 1', onAdd: () => {} },
+    data: { label: 'Node 1', onAdd: () => {}, content: 'Example' },
     type: 'controllernode',
+    style: { width: 400, height: 400}
   },
 ];
 
@@ -27,30 +30,65 @@ const flowKey: string = 'xyflow-demo';
 let id: number = 2;
 const getId = () => `${id++}`;
 
-const Controllernode = ({id, data }: { id:string,data: any }) => {
-  const {getNode} = useReactFlow();
+const Controllernode = ({ id, data, selected }: { id: string, data: any, selected?: boolean }) => {
+  const { getNode } = useReactFlow();
+  
+  function saveNodeData(value : string | undefined) {
+    localStorage.setItem('data-node-'+id, value || '');
+  }
+
+  function loadNodeData(editor: any) {
+    const savedData = localStorage.getItem('data-node-'+id);
+    if (savedData) {
+      editor.setValue(savedData);
+    }
+  }
 
   return (
-    <div className="w-64 rounded-xl border-2 border-solid border-black bg-slate-800 p-4">
-      <div className="flex flex-col gap-3">
-        <span className="text-center text-md font-bold text-white">Title</span>
-        <Textarea 
-          className="nodrag min-h w-full border border-gray-300 p-2" 
-          placeholder="Enter text..."
-        />
-        <Button
-          className="nodrag w-full dark:bg-gray-700 dark:text-white active:scale-80"
-          
-          onClick={()=>{
-            const currentNode = getNode(id);
-            if (currentNode && data.onAdd) data.onAdd({old_id: currentNode.id, old_pos: currentNode.position});
-            
-          }}
-        >Add Node</Button>
-        <div className='text-xs text-white'>Node ID : {id}</div>
+    <div className="flex flex-col h-full w-full rounded-xl border border-slate-700 bg-slate-900 shadow-xl overflow-hidden">
+      <NodeResizeControl style={{ border: '2px solid black'}} minWidth={300} minHeight={300}>
+        <ResizeIcon/>
+      </NodeResizeControl>
+
+      <div className="shrink-0 bg-slate-950 p-2 border-b border-slate-800 flex justify-between items-center handle">
+        <span className="text-sm font-bold text-slate-200 pl-2">Controller {id}</span>
+        <div className='text-[10px] text-slate-500'>ID: {id}</div>
       </div>
-      <Handle position={Position.Left} type='target' />
-      <Handle position={Position.Right} type='source'/>
+
+      <div className="grow min-h-0 w-full relative nodrag nowheel">
+        <Editor 
+          height="100%"
+          defaultValue={data.content || "// Code here"}
+          theme="vs-dark"
+          onChange={saveNodeData}
+          onMount={loadNodeData}
+          options={{
+            minimap: { enabled: false },
+            fontSize: 12,
+            padding: { top: 10 },
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+          }}
+        />
+      </div>
+
+      <div className="shrink-0 p-3 bg-slate-900 border-t border-slate-800">
+        <Button
+          size="sm"
+          className="nodrag w-full bg-blue-600 hover:bg-blue-500 text-white"
+          onClick={() => {
+            const currentNode = getNode(id);
+            if (currentNode && data.onAdd) {
+              data.onAdd({ old_id: currentNode.id, old_pos: currentNode.position });
+            }
+          }}
+        >
+          Add Next Node
+        </Button>
+      </div>
+
+      <Handle position={Position.Left} type='target' className="!bg-blue-500 !w-3 !h-3" />
+      <Handle position={Position.Right} type='source' className="!bg-blue-500 !w-3 !h-3" />
     </div>
   );
 };
@@ -89,12 +127,14 @@ function InnerHome() {
     const newid = getId();
     const newNode: Node = {
       id: newid,
-      position: { x: old_pos.x + 300, y: old_pos.y + (0.5 - Math.random()) * 300 },
+      position: { x: old_pos.x + 600, y: old_pos.y + (0.5 - Math.random()) * 600 },
       data: { 
         label: `Node ${newid}`, 
-        onAdd: addNode 
+        onAdd: addNode,
+        content: 'Sample Code'
       },
       type: 'controllernode',
+      style: { width: 400, height: 300}
     };
     const newEdge: Edge = {
       id: `${newid}-${old_id}`,
@@ -102,7 +142,7 @@ function InnerHome() {
       target: `${newid}`,
     };
     setEdges((eds) => eds.concat(newEdge));
-    setNodes((nds) => nds.concat(newNode));
+    setNodes((nds) => nds.concat(newNode)); 
   }, []);
 
   const onRestore = useCallback(() => {
@@ -151,15 +191,17 @@ function InnerHome() {
         onInit={setRfInstance}
         nodeTypes={nodeTypes}
         fitView
+        fitViewOptions={{maxZoom : 1}}
         colorMode='dark'
       > 
         <Controls />
         <Background />
         <Panel position="top-center" className="pt-1">
           <Button 
-            variant="default" // Shadcn styling
+            variant="default"
             onClick={() => {
-              localStorage.removeItem(flowKey);
+              localStorage.removeItem(flowKey,);
+
               window.location.reload();
             }}
           >
