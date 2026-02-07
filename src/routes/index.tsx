@@ -1,5 +1,5 @@
 import { createFileRoute} from '@tanstack/react-router'
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, NodeChange, OnNodesChange, OnEdgesChange, OnConnect, Controls, Background, Handle, Position, ConnectionMode, useReactFlow, NodeResizer} from '@xyflow/react'
 import {Node,Edge} from '@xyflow/react'
 import { Button } from '@/components/ui/button';
@@ -27,22 +27,8 @@ const initialNodes: Node[] = [
 
 const flowKey: string = 'xyflow-demo';
 
-let id: number = 2;
-const getId = () => `${id++}`;
-
 const Controllernode = ({ id, data, selected }: { id: string, data: any, selected?: boolean }) => {
-  const { getNode } = useReactFlow();
-  
-  function saveNodeData(value : string | undefined) {
-    localStorage.setItem('data-node-'+id, value || '');
-  }
-
-  function loadNodeData(editor: any) {
-    const savedData = localStorage.getItem('data-node-'+id);
-    if (savedData) {
-      editor.setValue(savedData);
-    }
-  }
+  const {updateNodeData, getNode } = useReactFlow();
 
   return (
     <div className="flex flex-col h-full w-full rounded-xl border border-slate-700 bg-slate-900 shadow-xl overflow-hidden">
@@ -58,10 +44,9 @@ const Controllernode = ({ id, data, selected }: { id: string, data: any, selecte
       <div className="grow min-h-0 w-full relative nodrag nowheel">
         <Editor 
           height="100%"
-          defaultValue={data.content || "// Code here"}
+          defaultValue={data.content || "//Your Code here..."}
           theme="vs-dark"
-          onChange={saveNodeData}
-          onMount={loadNodeData}
+          onChange={(val)=> updateNodeData(id, { content: val })}
           options={{
             minimap: { enabled: false },
             fontSize: 12,
@@ -87,8 +72,8 @@ const Controllernode = ({ id, data, selected }: { id: string, data: any, selecte
         </Button>
       </div>
 
-      <Handle position={Position.Left} type='target' className="!bg-blue-500 !w-3 !h-3" />
-      <Handle position={Position.Right} type='source' className="!bg-blue-500 !w-3 !h-3" />
+      <Handle position={Position.Left} type='target' />
+      <Handle position={Position.Right} type='source' />
     </div>
   );
 };
@@ -102,7 +87,8 @@ function InnerHome() {
   const [edges, setEdges] = useState(initialEdges);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const { setViewport } = useReactFlow();
- 
+  const idcounter = useRef(2);
+
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
     [],
@@ -116,33 +102,29 @@ function InnerHome() {
     [],
   );
 
-  const onSave = useCallback(() => {
-    if (rfInstance) {
-      const flow = rfInstance.toObject();
-      localStorage.setItem(flowKey, JSON.stringify(flow));
-    }
-  }, [rfInstance]);
-
   const addNode = useCallback(({ old_id, old_pos }: { old_id: string, old_pos: { x: number, y: number } }) => {
-    const newid = getId();
+    const newId = `${idcounter.current++}`;
+    
     const newNode: Node = {
-      id: newid,
-      position: { x: old_pos.x + 600, y: old_pos.y + (0.5 - Math.random()) * 600 },
+      id: newId,
+      position: { x: old_pos.x + 450, y: old_pos.y + (Math.random() - 0.5) * 200 },
       data: { 
-        label: `Node ${newid}`, 
+        label: `Node ${newId}`, 
         onAdd: addNode,
-        content: 'Sample Code'
+        content: '// Type or Paste code here...'
       },
       type: 'controllernode',
-      style: { width: 400, height: 300}
+      style: { width: 400, height: 300 }
     };
+    
     const newEdge: Edge = {
-      id: `${newid}-${old_id}`,
-      source: `${old_id}`,
-      target: `${newid}`,
+      id: `${newId}-${old_id}`,
+      source: old_id,
+      target: newId,
     };
+    
+    setNodes((nds) => nds.concat(newNode));
     setEdges((eds) => eds.concat(newEdge));
-    setNodes((nds) => nds.concat(newNode)); 
   }, []);
 
   const onRestore = useCallback(() => {
@@ -152,6 +134,14 @@ function InnerHome() {
     if (flow) {
       const { x = 0, y = 0, zoom = 1 } = flow.viewport;
       
+      //calculate max id to set idcounter
+      let maxId = 0;
+      (flow.nodes || []).forEach((node: Node) => {
+        const nId = parseInt(node.id);
+        if (!isNaN(nId)) maxId = Math.max(maxId, nId);
+      });
+      idcounter.current = maxId + 1;
+
       const restoredNodes = (flow.nodes || []).map((node: Node) => ({
         ...node,
         data: { ...node.data, onAdd: addNode }
@@ -167,11 +157,16 @@ function InnerHome() {
     onRestore();
   },[onRestore]);  
 
+  //SAVE FUNCTION
   useEffect(() => {
-    if (nodes.length > 0) {
-      onSave();
+    if (rfInstance && nodes.length > 0) {
+      const saveInterval = setInterval(() => {
+        const flow = rfInstance.toObject();
+        localStorage.setItem(flowKey, JSON.stringify(flow));
+      }, 1000);
+      return () => clearInterval(saveInterval);
     }
-  }, [nodes, edges, onSave]);
+  }, [rfInstance, nodes, edges]);
 
   useEffect(() => {
     setNodes((nds) => nds.map((node) => ({
