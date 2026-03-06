@@ -4,15 +4,31 @@ import { AddNode } from "./core/AddNode";
 import { CodeEditor } from "./core/CodeEditor";
 import { TitleBar } from "./core/TitleBar";
 
-export const Controllernode = ({ id, data}: { id: string, data: any}) => {
-  const {updateNodeData, getNode } = useReactFlow();
+export const Controllernode = ({ id, data, selected }: { id: string, data: any, selected?: boolean }) => {
+  const {updateNodeData, getNode, setNodes } = useReactFlow();
+
+  const updateTitle = (nodeId: string, newData: any) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return { ...node, data: { ...node.data, title : newData.title, label: newData.label } };
+        }
+        return node;
+      })
+    );
+  };
 
   return (
-    <div className="flex flex-col h-full w-full rounded-xl border border-slate-700 bg-slate-900 shadow-xl overflow-hidden">
-      
+      <div 
+        className={`flex flex-col h-full w-full rounded-xl border-2 bg-slate-900 overflow-hidden
+          ${selected 
+            ? 'border-pink-100' 
+            : 'border-slate-700'
+          }`}
+      >
       <NodeResizeControl style={{ border: '2px solid black'}} minWidth={300} minHeight={300}><ResizeIcon/></NodeResizeControl>
 
-      <TitleBar id={id}/>
+      <TitleBar title={data.label || data.title} id={id} updateTitle={updateTitle}/>
 
       <CodeEditor id={id} data={data} updateNodeData={updateNodeData}/>
 

@@ -20,3 +20,6 @@ yarn.lock
 .tanstack
 .vscode
 .github
+
+# Local Netlify folder
+.netlify

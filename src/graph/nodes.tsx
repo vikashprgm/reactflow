@@ -7,20 +7,3 @@ export const initialNodes: Node[] = [
     data: { label: 'Node 1' }
   }
 ];
-
-import { Button } from '@/components/ui/button';
-
-type Props = {
-  onAddNode: () => void;
-};
-
-export const Controllernode = ({ onAddNode } : Props) => {
-  return (
-    <div>
-      <Button onClick={
-        ()=>{onAddNode();
-        }
-      }>Click Me</Button>
-    </div>
-  );
-};

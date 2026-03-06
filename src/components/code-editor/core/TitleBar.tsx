@@ -1,9 +1,15 @@
-export function TitleBar({ id }: { id: string }) {
-    return(
+import { Field } from "@/components/ui/field"
+import { Label } from "@/components/ui/label"
+import { ChangeTitle } from "../ChangeTitle"
 
-        <div className="shrink-0 bg-slate-950 p-2 border-b border-slate-800 flex justify-between items-center handle">
-        <span className="text-sm font-bold text-slate-200 pl-2">Controller {id}</span>
-        <div className='text-[10px] text-slate-500'>ID: {id}</div>
+export function TitleBar({ id, title, updateTitle}: { id: string, title: string, updateTitle: (id: string, newData: any)=>void }) {
+  
+  return(
+        <div className="text-white p-2">
+          <Field orientation={"horizontal"} className="justify-between">
+              <Label>{title}</Label>
+              <ChangeTitle id={id} updateTitle={updateTitle} currentTitle={title}/>
+          </Field>
       </div>
     )
 }

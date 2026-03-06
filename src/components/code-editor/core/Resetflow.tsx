@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Trash2Icon } from "lucide-react"
 
-export function ResetFlow(flowKey: any) {
+export function ResetFlow({flowKey , OnReset} : {flowKey: string, OnReset: () => void}) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -35,8 +35,9 @@ export function ResetFlow(flowKey: any) {
           <AlertDialogAction variant="destructive" 
             onClick={() => {
               localStorage.removeItem(flowKey);
-              window.location.reload();
-            }}>Reset Flow
+              OnReset();
+            }}
+            >Reset Flow
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
