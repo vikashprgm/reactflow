@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LearnmoreIndexRouteImport } from './routes/learnmore.index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnmoreIndexRoute = LearnmoreIndexRouteImport.update({
+  id: '/learnmore/',
+  path: '/learnmore/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -26,27 +32,31 @@ const AppIndexRoute = AppIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app/': typeof AppIndexRoute
+  '/learnmore/': typeof LearnmoreIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppIndexRoute
+  '/learnmore': typeof LearnmoreIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app/': typeof AppIndexRoute
+  '/learnmore/': typeof LearnmoreIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app/'
+  fullPaths: '/' | '/app/' | '/learnmore/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app'
-  id: '__root__' | '/' | '/app/'
+  to: '/' | '/app' | '/learnmore'
+  id: '__root__' | '/' | '/app/' | '/learnmore/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppIndexRoute: typeof AppIndexRoute
+  LearnmoreIndexRoute: typeof LearnmoreIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learnmore/': {
+      id: '/learnmore/'
+      path: '/learnmore'
+      fullPath: '/learnmore/'
+      preLoaderRoute: typeof LearnmoreIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppIndexRoute: AppIndexRoute,
+  LearnmoreIndexRoute: LearnmoreIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
