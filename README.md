@@ -1,6 +1,6 @@
 # ReactFlow Graph Editor
 
-A interactive graph editing application built with React, TypeScript, and [@xyflow/react](https://www.xyflow.com/). Create, connect, and manage nodes in a visual canvas with persistent local storage.
+An interactive, visual, node-based coding canvas. You can now show what your code actually means at once by presenting them in Graphical Form.
 
 Try Here - https://floweditor3.netlify.app/
 
