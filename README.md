@@ -2,6 +2,8 @@
 
 A interactive graph editing application built with React, TypeScript, and [@xyflow/react](https://www.xyflow.com/). Create, connect, and manage nodes in a visual canvas with persistent local storage.
 
+Try Here - https://floweditor3.netlify.app/
+
 ## Features
 
 - **Interactive Node Canvas** — Pan, zoom, and drag nodes on a visual graph
@@ -9,16 +11,14 @@ A interactive graph editing application built with React, TypeScript, and [@xyfl
 - **Node Connections** — Draw edges between nodes to establish relationships
 - **Persistent Storage** — Auto-save graph state to browser localStorage
 - **Dark Mode** — Built-in dark theme for comfortable editing
-- **Reset Flow** — Clear the canvas and start fresh
 
 ## Tech Stack
 
 - **Framework:** React 18 + TypeScript
 - **Build Tool:** Vite
 - **Routing:** TanStack Router
-- **Graph UI:** @xyflow/react
-- **Styling:** Tailwind CSS + shadcn/ui components
-- **State Management:** React hooks (useState, useCallback)
+- **Graph UI:** @xyflow/react (or ReactFlow)
+- **Styling:** Tailwind + shadcn
 
 ## Getting Started
 
@@ -49,16 +49,11 @@ The app will be available at `http://localhost:5173` (or the next available port
 pnpm build
 ```
 
-This runs both Vite bundling and TypeScript type checking (`tsc --noEmit`). Fix any type errors before deployment.
-
 ### Preview Production Build
 
 ```bash
 pnpm preview
 ```
-
-Serves the built output locally to simulate production.
-
 ## Project Structure
 
 ```
@@ -78,7 +73,7 @@ src/
 └── main.tsx                # Entry point
 ```
 
-## Key Concepts
+## Documentation
 
 ### Node Types
 
