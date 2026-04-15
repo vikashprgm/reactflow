@@ -7,8 +7,6 @@ export const Route = createFileRoute('/')({
 
 export default function HomePage() {
   return (
-    <div >
-      <Hero/>
-    </div>
+    <Hero/>
   )
 }
